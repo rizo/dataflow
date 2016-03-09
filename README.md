@@ -43,11 +43,11 @@ The communication between nodes is described in the following diagram:
 
 ```ocaml
 
-open IO.Seq
+open Dataflow
 
 (* Produces a stream of integers from `start` to `stop. *)
 let rec range start stop =
-  count => take stop => drop start
+  count >>> take stop >>> drop start
   
 (* Applies a function to each element of a stream. *)
 let map f = forever (await >>= fun a -> yield (f a))
@@ -62,9 +62,9 @@ let rec filter pred =
     else filter pred
 
 (* Compute the sum of all odd integers up to 1000000. *)
-assert (fold ~init:0 ~f:(+) (iota 1000000 => filter odd) = 250000000000);
+assert (fold ~init:0 ~f:(+) (iota 1000000 >>> filter odd) = 250000000000);
 
 (* Take 5 integers from an infinit sequence and collect them into a list. *)
-assert (collect (count => take 5) = [0; 1; 2; 3; 4]);
+assert (collect (count >>> take 5) = [0; 1; 2; 3; 4]);
 
 ```
