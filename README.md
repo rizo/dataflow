@@ -1,4 +1,4 @@
-# Modular Data Flows
+# Composable Data Flows
 
 <!--
 [![Build Status](https://travis-ci.org/rizo/io.svg?branch=master)](https://travis-ci.org/rizo/io?branch=master)
