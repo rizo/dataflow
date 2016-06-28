@@ -30,7 +30,7 @@ The communication between nodes is described in the following diagram:
 ```
 
 
-### Features
+### Goals
 
 - Simple and extensible core model.
 - First-class composable computations.
