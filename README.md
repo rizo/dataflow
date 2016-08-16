@@ -45,21 +45,40 @@ The communication between nodes is described in the following diagram:
 
 open Dataflow
 
+let numbers () =
+  perform begin
+    yield 1;
+    yield 2;
+    yield 3;
+    yield 4;
+    yield 5
+  end
+
 (* Produces a stream of integers from `start` to `stop. *)
 let rec range start stop =
   count >>> take stop >>> drop start
   
 (* Applies a function to each element of a stream. *)
-let map f = forever (await >>= fun a -> yield (f a))
+let map f =
+  forever begin
+    a <- await;
+    yield (f a)
+  end
 
 (* Identity stream, passes values downstream. *)
-let cat = forever (await >>= yield)
+let cat =
+  forever begin
+    a <- await;
+    yield a
+  end
 
 (* Filters values of a stream using a predicate. *)
 let rec filter pred =
-  await >>= fun a ->
-    if pred a then yield a >> lazy (filter pred)
-    else filter pred
+  a <- await;
+  if pred a then
+    perform (yield a; filter pred)
+  else
+    filter pred
 
 (* Compute the sum of all odd integers up to 1000000. *)
 assert (fold ~init:0 ~f:(+) (iota 1000000 >>> filter odd) = 250000000000);
