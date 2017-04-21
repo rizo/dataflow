@@ -2,26 +2,14 @@
 open Elements
 open IO_core
 
-let (=>) = (>>>)
-let (<=) = (<<<)
-
 let rec count =
   let rec loop n =
     yield n >> lazy (loop (n + 1)) in
   loop 0
 
-let rec map_rec f =
-  await >>= fun a -> yield (f a) >> lazy (map_rec f)
-
-let rec map_rec_cons f =
-  Await (fun a -> Yield (f a, lazy (map_rec f)))
-
-let map_forever f =
+let map f =
   forever (await >>= fun a -> yield (f a))
 
-let map = map_forever
-
-(* TODO: Use next. *)
 let rec each f =
   await >>= fun a -> f a; each f
 
@@ -36,15 +24,8 @@ let rec filter_map f =
   | Some a' -> yield a' >> lazy (filter_map f)
   | None    -> filter_map f
 
-let rec take_rec n =
-  if n < 0 then raise (Invalid_argument "take: negative index")
-  else if n = 0 then return ()
-  else await >>= fun i -> yield i >> lazy (take_rec (n - 1))
-
-let take_replicate n =
+let take n =
   replicate n (await >>= yield)
-
-let take = take_replicate
 
 let rec take_while pred =
   await >>= fun a ->
@@ -68,13 +49,13 @@ let rec repeat ?n x =
   | None -> forever (yield x)
 
 let rec iota stop =
-  count => take stop
+  count >>> take stop
 
 let range start stop =
-  count => take stop => drop start
+  count >>> take stop >>> drop start
 
 let slice i j =
-  drop i => take (j - i)
+  drop i >>> take (j - i)
 
 let fold ~init ~f source =
   let rec loop source acc =
@@ -83,7 +64,7 @@ let fold ~init ~f source =
     | None           -> acc in
   loop source init
 
-let nth_direct n source =
+let nth n source =
   if n < 0 then fail "nth: negative index"
   else
     let rec loop n source =
@@ -93,8 +74,6 @@ let nth_direct n source =
         else loop (n - 1) rest
       | None -> None
     in loop n source
-
-let nth = nth_direct
 
 let head p =
   match next p with
@@ -139,18 +118,3 @@ let collect src =
     | Some (a, rest) -> loop rest (a::acc)
     | None -> List.rev acc
   in loop src []
-
-module Explicit = struct
-
-  let rec map f s =
-    await_from s >>= fun a -> yield (f a) >> lazy (map f s)
-
-  let take n s =
-    replicate n (await_from s >>= yield)
-
-  let rec filter f s =
-    await_from s >>= fun a ->
-    if f a then yield a >> lazy (filter f s)
-    else filter f s
-
-end
