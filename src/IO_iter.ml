@@ -2,7 +2,7 @@
 open Elements
 open IO_core
 
-let rec count =
+let count =
   let rec loop n =
     yield n >> lazy (loop (n + 1)) in
   loop 0
